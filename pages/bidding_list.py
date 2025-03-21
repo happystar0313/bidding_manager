@@ -12,12 +12,15 @@ query_params = st.query_params
 selected_bid = query_params.get("bid", [""])[0]
 selected_bid = unquote(selected_bid)  # URL 디코딩
 
+# ✅ 디버깅용 출력
+st.write(f"📌 선택된 입찰명: {selected_bid}")  
+
 # ✅ 데이터 파일 경로 함수
 def get_data_file(year):
     return f"bidding_data_{year}.csv"
 
 # ✅ 데이터 불러오기
-current_year = 2025  # 기본 연도 설정
+current_year = 2025
 bidding_data = []
 
 for year in range(current_year - 1, current_year + 1):
@@ -33,8 +36,11 @@ if bidding_data:
 else:
     df_all = pd.DataFrame()
 
+# ✅ 데이터 확인 (입찰명 컬럼 존재 여부 체크)
+st.write("📂 불러온 데이터:", df_all.head())
+
 # ✅ 특정 입찰명으로 필터링
-if selected_bid and not df_all.empty:
+if selected_bid and not df_all.empty and "입찰명" in df_all.columns:
     df_filtered = df_all[df_all["입찰명"] == selected_bid]
     if not df_filtered.empty:
         st.write(df_filtered)  # ✅ 선택한 입찰 정보 출력
