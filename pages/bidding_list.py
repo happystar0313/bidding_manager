@@ -67,9 +67,9 @@ if not df.empty:
     if bid_data["개찰여부"] == "⭕ 개찰 완료":
         st.success("🏆 개찰이 완료된 입찰입니다.")
        if st.button("📊 개찰 정보 조회"):
-    encoded_bid = quote(selected_bid)
-    target_url = f"/bidding_results?bid={encoded_bid}&year={year}"  # ✅ .py 없이!
-    components.html(f"<script>window.location.href = '{target_url}';</script>", height=0)
+         encoded_bid = quote(selected_bid)
+         target_url = f"/bidding_results?bid={encoded_bid}&year={year}"  # ✅ .py 없이!
+         components.html(f"<script>window.location.href = '{target_url}';</script>", height=0)
 
     else:
         st.warning("⚠ 이 입찰은 아직 개찰되지 않았습니다.")
