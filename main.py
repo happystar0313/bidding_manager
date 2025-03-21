@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+from urllib.parse import quote
 
 st.set_page_config(page_title="🏛️ 클레버디 입찰관리 시스템", layout="wide")
 
@@ -14,7 +15,7 @@ else:
     default_logo_url = "https://via.placeholder.com/250x100?text=Clever:D"
     st.image(default_logo_url, width=250)
 
-st.title("🏛️ 클레버디 입찰관리 시스템")
+st.markdown("<h1 style='text-align: center;'>🏛️ 클레버디 입찰관리 시스템</h1>", unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -25,12 +26,12 @@ current_year = datetime.now().year
 def get_data_file(year):
     return f"bidding_data_{year}.csv"
 
-# ✅ 최근 데이터 불러오기 함수 (오류 수정)
+# ✅ 최근 데이터 불러오기 함수 (입찰명 전달 가능하도록 개선)
 def load_recent_data():
     recent_bids = []
     recent_openings = []
     
-    for year in range(current_year - 1, current_year + 1):  # 작년, 올해 데이터만 확인
+    for year in range(current_year - 1, current_year + 1):  # 작년~올해 데이터만 확인
         file_name = get_data_file(year)
         if os.path.exists(file_name):
             df = pd.read_csv(file_name)
@@ -49,40 +50,58 @@ def load_recent_data():
 # ✅ 최근 데이터 불러오기
 recent_bids, recent_openings = load_recent_data()
 
-# ✅ 메뉴 섹션 (아이콘 중복 해결 + 폰트 크기 유지)
+# ✅ 메뉴 섹션 (모바일 UI 최적화 → 세로 정렬)
 st.markdown("## 📂 메뉴")
 
-col1, col2 = st.columns(2)
+st.markdown("""
+<style>
+    .menu-button { 
+        display: block; 
+        width: 100%; 
+        padding: 10px 20px; 
+        text-align: center;
+        font-size: 18px; 
+        font-weight: bold; 
+        border-radius: 10px; 
+        background-color: #f8f9fa; 
+        margin: 5px 0;
+    }
+    .menu-button:hover { background-color: #e9ecef; }
+</style>
+""", unsafe_allow_html=True)
 
-with col1:
-    if st.button("📝 입찰정보 입력"):
-        st.switch_page("pages/bidding_entry.py")
-    if st.button("📊 개찰정보 입력"):
-        st.switch_page("pages/bidding_opening.py")
-
-with col2:
-    if st.button("📜 입찰정보 조회"):
-        st.switch_page("pages/bidding_list.py")
-    if st.button("🏆 개찰 결과 확인"):
-        st.switch_page("pages/bidding_results.py")
+if st.button("📝 입찰정보 입력", key="entry"):
+    st.switch_page("pages/bidding_entry.py")
+if st.button("📊 개찰정보 입력", key="opening"):
+    st.switch_page("pages/bidding_opening.py")
+if st.button("📜 입찰정보 조회", key="list"):
+    st.switch_page("pages/bidding_list.py")
+if st.button("🏆 개찰 결과 확인", key="results"):
+    st.switch_page("pages/bidding_results.py")
 
 st.markdown("---")
 
-# ✅ 최근 등록된 입찰 섹션
+# ✅ 📌 "최근 등록된 입찰" (클릭하면 입찰정보 조회 + 자동 필터링)
 st.markdown("### 📌 최근 등록된 입찰")
 if recent_bids:
     for bid in recent_bids:
-        st.markdown(f"📄 **{bid[0]}** (공고일: {bid[1]})")
+        bid_name, bid_date = bid[0], bid[1]
+        bid_encoded = quote(bid_name)  # URL 인코딩
+        bid_link = f"[📄 **{bid_name}** (공고일: {bid_date})](/pages/bidding_list.py?bid={bid_encoded})"
+        st.markdown(bid_link, unsafe_allow_html=True)
 else:
     st.markdown("📭 최근 등록된 입찰이 없습니다.")
 
 st.markdown("---")
 
-# ✅ 최근 개찰 완료된 입찰 섹션
+# ✅ 🏆 "최근 개찰 완료된 입찰" (클릭하면 개찰정보 조회 + 자동 필터링)
 st.markdown("### 🏆 최근 개찰 완료된 입찰")
 if recent_openings:
     for opening in recent_openings:
-        st.markdown(f"🏅 **{opening[0]}** → 낙찰업체: **{opening[1]}**")
+        opening_name, winner = opening[0], opening[1]
+        opening_encoded = quote(opening_name)  # URL 인코딩
+        opening_link = f"[🏅 **{opening_name}** → 낙찰업체: **{winner}**](/pages/bidding_results.py?bid={opening_encoded})"
+        st.markdown(opening_link, unsafe_allow_html=True)
 else:
     st.markdown("📭 최근 개찰된 입찰이 없습니다.")
 
