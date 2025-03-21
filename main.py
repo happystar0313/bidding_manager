@@ -2,110 +2,83 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-from urllib.parse import quote
 
-st.set_page_config(page_title="🏛️ 클레버디 입찰관리 시스템", layout="wide")
+st.set_page_config(page_title="\ud83c\udfe9\ufe0f \ud074\ub808\ubc84\ub514 \uc785\ucc29\uad00\ub9ac \uc2dc\uc2a4\ud15c", layout="wide")
 
-# ✅ 로고 이미지 파일 체크 후 표시
-logo_path = "로고.png"
-
-if os.path.exists(logo_path):
-    st.image(logo_path, width=250)
-else:
-    default_logo_url = "https://via.placeholder.com/250x100?text=Clever:D"
-    st.image(default_logo_url, width=250)
-
-st.markdown("<h1 style='text-align: center;'>🏛️ 클레버디 입찰관리 시스템</h1>", unsafe_allow_html=True)
-
-st.markdown("---")
-
-# ✅ 현재 연도 가져오기
-current_year = datetime.now().year
-
-# ✅ 데이터 파일 경로 함수
+# \ud504\ub85c\uc81d\ud2b8 \ubaa9\ub85d\uc744 \ubd88\ub7ec\uc624\ub294 \ud568\uc218
 def get_data_file(year):
     return f"bidding_data_{year}.csv"
 
-# ✅ 최근 데이터 불러오기 함수 (입찰명 전달 가능하도록 개선)
+# \ubaa9\ub85d \uc870\ud68c\uc5d0 \uc0ac\uc6a9\ud560 \ud615\uc2dd \ubcc0
 def load_recent_data():
     recent_bids = []
     recent_openings = []
-    
-    for year in range(current_year - 1, current_year + 1):  # 작년~올해 데이터만 확인
-        file_name = get_data_file(year)
-        if os.path.exists(file_name):
-            df = pd.read_csv(file_name)
-            df = df.fillna("")  # ✅ NaN 값 제거
+    current_year = datetime.now().year
 
+    for year in range(current_year - 1, current_year + 1):
+        file_path = get_data_file(year)
+        if os.path.exists(file_path):
+            df = pd.read_csv(file_path)
+            df = df.fillna("")
             if not df.empty:
-                if "입찰명" in df.columns and "공고일" in df.columns:
-                    recent_bids.extend(df[["입찰명", "공고일"]].dropna().tail(3).values.tolist())
-
-                if "입찰명" in df.columns and "낙찰업체" in df.columns:
-                    opened = df[df["낙찰업체"].str.strip() != ""]  # ✅ 빈 값 필터링
-                    recent_openings.extend(opened[["입찰명", "낙찰업체"]].tail(3).values.tolist())
+                if "\uc785\ucc29\uba85" in df.columns and "\uacf5\uace0\uc77c" in df.columns:
+                    recent_bids.extend(df[["\uc785\ucc29\uba85", "\uacf5\uace0\uc77c"]].dropna().tail(3).values.tolist())
+                if "\uc785\ucc29\uba85" in df.columns and "\ub0a9\ucc28\uc5c5\uccb4" in df.columns:
+                    opened = df[df["\ub0a9\ucc28\uc5c5\uccb4"].str.strip() != ""]
+                    recent_openings.extend(opened[["\uc785\ucc29\uba85", "\ub0a9\ucc28\uc5c5\uccb4"]].tail(3).values.tolist())
 
     return recent_bids, recent_openings
 
-# ✅ 최근 데이터 불러오기
+# \ubaa9\ub85d \ubd88\ub7ec\uc624\uae30
 recent_bids, recent_openings = load_recent_data()
+current_year = datetime.now().year
 
-# ✅ 메뉴 섹션 (모바일 UI 최적화 → 세로 정렬)
-st.markdown("## 📂 메뉴")
+# \ub85c\uace0 \ud45c시
+logo_path = "\ub85c\uace0.png"
+if os.path.exists(logo_path):
+    st.image(logo_path, width=250)
+else:
+    st.image("https://via.placeholder.com/250x100?text=Clever:D", width=250)
 
-st.markdown("""
-<style>
-    .menu-button { 
-        display: block; 
-        width: 100%; 
-        padding: 10px 20px; 
-        text-align: center;
-        font-size: 18px; 
-        font-weight: bold; 
-        border-radius: 10px; 
-        background-color: #f8f9fa; 
-        margin: 5px 0;
-    }
-    .menu-button:hover { background-color: #e9ecef; }
-</style>
-""", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>\ud83c\udfe9\ufe0f \ud074\ub808\ubc84\ub514 \uc785\ucc29\uad00\ub9ac \uc2dc\uc2a4\ud15c</h1>", unsafe_allow_html=True)
 
-if st.button("📝 입찰정보 입력", key="entry"):
+st.markdown("---")
+
+st.markdown("## \ud83d\udcc2 \uba54\ub274")
+
+if st.button("\ud83d\udcdd \uc785\ucc29\uc815\ubcf4 \uc785\ub825"):
     st.switch_page("pages/bidding_entry.py")
-if st.button("📊 개찰정보 입력", key="opening"):
+if st.button("\ud83d\udcca \uac1c\ucc28\uc815\ubcf4 \uc785\ub825"):
     st.switch_page("pages/bidding_opening.py")
-if st.button("📜 입찰정보 조회", key="list"):
+if st.button("\ud83d\udcdc \uc785\ucc29\uc815\ubcf4 \uc870\ud68c"):
     st.switch_page("pages/bidding_list.py")
-if st.button("🏆 개찰 결과 확인", key="results"):
+if st.button("\ud83c\udfc6 \uac1c\ucc28 \uacb0\uacfc \ud655\uc778"):
     st.switch_page("pages/bidding_results.py")
 
 st.markdown("---")
 
-# ✅ 📌 "최근 등록된 입찰" (클릭하면 입찰정보 조회 + 자동 필터링)
-st.markdown("### 📌 최근 등록된 입찰")
+# \ucc98\ub9ac\ub41c \ubaa9\ub85d \ud45c시
+st.markdown("### \ud83d\udcc0 \ucd5c\uadfc \ub4f1\ub85d\ub41c \uc785\ucc29")
 if recent_bids:
     for bid in recent_bids:
         bid_name, bid_date = bid[0], bid[1]
-        bid_encoded = quote(bid_name)  # URL 인코딩
-        bid_link = f"[📄 **{bid_name}** (공고일: {bid_date})](/pages/bidding_list.py?bid={bid_encoded})"
-        st.markdown(bid_link, unsafe_allow_html=True)
+        if st.button(f"\ud83d\udcc4 {bid_name} (\uacf5\uace0\uc77c: {bid_date})", key=f"bid_{bid_name}"):
+            st.experimental_set_query_params(bid=bid_name)
+            st.switch_page("pages/bidding_list.py")
 else:
-    st.markdown("📭 최근 등록된 입찰이 없습니다.")
+    st.markdown("\ud83d\udcec \ucd5c\uadfc \ub4f1\ub85d\ub41c \uc785\ucc29\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.")
 
 st.markdown("---")
 
-# ✅ 🏆 "최근 개찰 완료된 입찰" (클릭하면 개찰정보 조회 + 자동 필터링)
-st.markdown("### 🏆 최근 개찰 완료된 입찰")
+st.markdown("### \ud83c\udfc6 \ucd5c\uadfc \uac1c\ucc28 \uc644\ub8cc\ub41c \uc785\ucc29")
 if recent_openings:
     for opening in recent_openings:
         opening_name, winner = opening[0], opening[1]
-        opening_encoded = quote(opening_name)  # URL 인코딩
-        opening_link = f"[🏅 **{opening_name}** → 낙찰업체: **{winner}**](/pages/bidding_results.py?bid={opening_encoded})"
-        st.markdown(opening_link, unsafe_allow_html=True)
+        if st.button(f"\ud83c\udfc5 {opening_name} \u2192 \ub0a9\ucc28\uc5c5\uccb4: {winner}", key=f"open_{opening_name}"):
+            st.experimental_set_query_params(bid=opening_name)
+            st.switch_page("pages/bidding_results.py")
 else:
-    st.markdown("📭 최근 개찰된 입찰이 없습니다.")
+    st.markdown("\ud83d\udcec \ucd5c\uadfc \uac1c\ucc28\ub41c \uc785\ucc29\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.")
 
 st.markdown("---")
-
-# ✅ 푸터에 현재 연도 배치
-st.markdown(f"© 2025 클레버디 | 입찰관리 시스템 v1.0 | 📅 현재 연도: **{current_year}년**")
+st.markdown(f"\u00a9 2025 \ud074\ub808\ubc84\ub514 | \uc785\ucc29\uad00\ub9ac \uc2dc\uc2a4\ud15c v1.0 | \ud83d\udcc5 \ud604\uc7ac \uc5f0\ub3c4: **{current_year}\ub144**")
