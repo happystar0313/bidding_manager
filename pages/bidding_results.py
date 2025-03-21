@@ -1,7 +1,8 @@
-import streamlit as st
+import streamlit as st 
 import pandas as pd
 import os
 from datetime import datetime
+from urllib.parse import unquote
 
 st.set_page_config(page_title="📈 개찰 정보 조회", layout="wide")
 
@@ -17,30 +18,31 @@ def load_data(year):
 
 st.title("📈 개찰 정보 조회")
 
-# ✅ 연도 선택 (자동)
-current_year = datetime.now().year
-year_options = [str(y) for y in range(current_year - 5, current_year + 4)]
-default_year = st.session_state.get("선택연도", str(current_year))
-default_year_index = year_options.index(default_year) if default_year in year_options else 0
+# ✅ query string에서 값 받아오기
+query_params = st.query_params
+selected_bid = unquote(query_params.get("bid", [""])[0])
+selected_year = query_params.get("year", [str(datetime.now().year)])[0]
 
+# ✅ 연도 선택
+year_options = [str(y) for y in range(datetime.now().year - 5, datetime.now().year + 4)]
+default_year_index = year_options.index(selected_year) if selected_year in year_options else 0
 year = st.selectbox("연도 선택", year_options, index=default_year_index)
+
 df = load_data(year)
 
 if df.empty:
     st.warning("⚠ 등록된 입찰 정보가 없습니다.")
 else:
-    # ✅ 개찰 완료된 입찰만 필터링
     opened_df = df[df["낙찰업체"].notna() & (df["낙찰업체"].str.strip() != "")]
 
     if opened_df.empty:
         st.info("ℹ 개찰이 완료된 입찰이 없습니다.")
     else:
         bid_list = opened_df["입찰명"].tolist()
-        default_selection = st.session_state.get("선택입찰명", bid_list[0])
-        if default_selection in bid_list:
-            selected_title = st.selectbox("조회할 입찰명 선택", bid_list, index=bid_list.index(default_selection))
-        else:
-            selected_title = st.selectbox("조회할 입찰명 선택", bid_list)
+
+        # ✅ 자동 선택 반영
+        default_selection = selected_bid if selected_bid in bid_list else bid_list[0]
+        selected_title = st.selectbox("조회할 입찰명 선택", bid_list, index=bid_list.index(default_selection))
 
         bid_data = opened_df[opened_df["입찰명"] == selected_title].iloc[0]
 
@@ -52,7 +54,6 @@ else:
 
         st.markdown("### 📋 참여 업체별 개찰 정보")
 
-        # ✅ 안전하게 split 처리 (빈 값 대비)
         def safe_split(value):
             return [v.strip() for v in str(value).split(";")] if pd.notna(value) and str(value).strip() else []
 
@@ -62,7 +63,6 @@ else:
         total_scores = safe_split(bid_data.get("업체점수", ""))
         company_memos = safe_split(bid_data.get("업체메모", ""))
 
-        # ✅ 종합점수 float 변환 및 순위 계산
         try:
             float_scores = [float(s) for s in total_scores]
             sorted_scores = sorted(enumerate(float_scores), key=lambda x: x[1], reverse=True)
@@ -72,7 +72,6 @@ else:
         except:
             ranks = ["-"] * len(companies)
 
-        # ✅ 표 데이터 구성
         result_data = []
         for i in range(len(companies)):
             result_data.append({
