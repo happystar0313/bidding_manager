@@ -31,7 +31,7 @@ year = st.selectbox("연도 선택", year_options, index=default_year_index)
 df = load_data(year)
 df["개찰여부"] = df["낙찰업체"].apply(lambda x: "⭕ 개찰 완료" if pd.notna(x) and x.strip() != "" else "❌ 미개찰")
 
-# ✅ 🔥 "메인 페이지에서 클릭한 입찰명 자동 선택" 기능 추가!!
+# ✅ "메인 페이지에서 클릭한 입찰명 자동 선택" 기능 추가 (변경된 방식 적용)
 query_params = st.query_params
 selected_bid = query_params.get("bid", [""])[0]
 selected_bid = unquote(selected_bid)  # URL 디코딩
@@ -62,13 +62,11 @@ if not df.empty:
     if isinstance(bid_data.get("정량평가", ""), str) and bid_data["정량평가"].strip():
         st.write(f"📋 **정량평가 항목**: {bid_data['정량평가']}")
 
-    # ✅ 개찰 정보 조회 버튼 → 자동 이동 기능 추가!
+    # ✅ 개찰 정보 조회 버튼 → `query_params`를 직접 설정하여 이동 (최신 방식 적용)
     if bid_data["개찰여부"] == "⭕ 개찰 완료":
         st.write("🏆 개찰이 완료된 입찰입니다.")
         if st.button("📊 개찰 정보 조회"):
-            st.session_state["선택입찰명"] = bid_data["입찰명"]
-            st.session_state["선택연도"] = year
-            st.switch_page("pages/bidding_results.py")
+            st.switch_page(f"pages/bidding_results.py?bid={selected_bid}&year={year}")
     else:
         st.warning("⚠ 이 입찰은 아직 개찰되지 않았습니다.")
 else:
