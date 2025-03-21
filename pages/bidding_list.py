@@ -12,8 +12,6 @@ query_params = st.query_params
 selected_bid = query_params.get("bid", [""])[0]
 selected_bid = unquote(selected_bid)  # URL 디코딩
 
-st.write(f"📌 선택된 입찰명: {selected_bid}")  # ✅ 입찰명이 정상적으로 넘어오는지 확인
-
 # ✅ 데이터 파일 경로 함수
 def get_data_file(year):
     return f"bidding_data_{year}.csv"
@@ -35,9 +33,27 @@ if bidding_data:
 else:
     df_all = pd.DataFrame()
 
-st.write("📂 불러온 데이터 (첫 5개):", df_all.head())  # ✅ 데이터가 정상적으로 불러와지는지 확인
+# ✅ 네 기존 UI 유지하면서 "선택된 입찰명" 조회 추가
+st.markdown("## 📋 입찰 목록")
 
-# ✅ 특정 입찰명으로 필터링
-if selected_bid and not df_all.empty and "입찰명" in df_all.columns:
-    df_filtered = df_all[df_all["입찰명"] == selected_bid]
-    st.write("🔍 필터링된 데이터:", df_filtered)  # ✅ 필터링 결과 확인
+if not df_all.empty:
+    st.dataframe(df_all[["입찰공고번호", "입찰명", "공고일", "마감일"]])
+
+    # ✅ 특정 입찰명 자동 조회 추가
+    if selected_bid:
+        df_filtered = df_all[df_all["입찰명"] == selected_bid]
+        if not df_filtered.empty:
+            bid_info = df_filtered.iloc[0]  # ✅ 첫 번째 데이터 가져오기
+
+            st.markdown("---")
+            st.markdown("### 📌 선택된 입찰 정보")
+            st.write(f"**📝 입찰명:** {bid_info['입찰명']}")
+            st.write(f"**📅 공고일:** {bid_info['공고일']}")
+            st.write(f"**⏳ 마감일:** {bid_info['마감일']}")
+            st.write(f"**🏢 발주 기관:** {bid_info['발주기관']}")
+            st.write(f"**💰 사업 예산:** {int(bid_info['사업예산']):,} 만원")
+            st.write(f"**📑 입찰 방식:** {bid_info['입찰방식']}")
+        else:
+            st.warning(f"⚠ '{selected_bid}'에 대한 입찰 정보가 없습니다.")
+else:
+    st.warning("📭 등록된 입찰이 없습니다.")
