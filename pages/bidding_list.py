@@ -36,14 +36,20 @@ else:
 # ✅ 특정 입찰명으로 필터링
 if selected_bid and not df_all.empty and "입찰명" in df_all.columns:
     df_filtered = df_all[df_all["입찰명"] == selected_bid]
+    
     if not df_filtered.empty:
-        bid_info = df_filtered.iloc[0]  # ✅ 첫 번째 데이터만 가져오기
-        st.subheader(f"📌 {bid_info['입찰명']}")
+        bid_info = df_filtered.iloc[0]  # ✅ 첫 번째 데이터 가져오기
+
+        # ✅ 네 원래 UI 스타일 그대로 유지해서 출력
+        st.markdown("### 📌 선택된 입찰 정보")
+        st.markdown(f"**📝 입찰명:** {bid_info['입찰명']}")
         st.markdown(f"**📅 공고일:** {bid_info['공고일']}")
         st.markdown(f"**⏳ 마감일:** {bid_info['마감일']}")
         st.markdown(f"**🏢 발주 기관:** {bid_info['발주기관']}")
-        st.markdown(f"**💰 사업 예산:** {bid_info['사업예산']} 만원")
+        st.markdown(f"**💰 사업 예산:** {int(bid_info['사업예산']):,} 만원")  # 천 단위 콤마 추가
         st.markdown(f"**📑 입찰 방식:** {bid_info['입찰방식']}")
+
+        # ✅ 추가 정보 필요하면 여기에 계속 넣기
     else:
         st.warning(f"⚠ '{selected_bid}'에 대한 입찰 정보가 없습니다.")
 else:
