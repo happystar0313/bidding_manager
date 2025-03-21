@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+from urllib.parse import unquote
 
 st.set_page_config(page_title="📜 입찰정보 리스트", layout="wide")
 
@@ -30,9 +31,18 @@ year = st.selectbox("연도 선택", year_options, index=default_year_index)
 df = load_data(year)
 df["개찰여부"] = df["낙찰업체"].apply(lambda x: "⭕ 개찰 완료" if pd.notna(x) and x.strip() != "" else "❌ 미개찰")
 
+# ✅ 🔥 "메인 페이지에서 클릭한 입찰명 자동 선택" 기능 추가!!
+query_params = st.query_params
+selected_bid = query_params.get("bid", [""])[0]
+selected_bid = unquote(selected_bid)  # URL 디코딩
+
 if not df.empty:
     st.write("### 📋 입찰 목록")
-    selected_bid = st.selectbox("상세 조회할 입찰 선택", df["입찰명"].tolist())
+
+    # ✅ 기존 `selectbox` 유지하면서 자동 선택 기능 추가
+    selected_bid = st.selectbox("상세 조회할 입찰 선택", df["입찰명"].tolist(), 
+                                index=df["입찰명"].tolist().index(selected_bid) if selected_bid in df["입찰명"].tolist() else 0)
+
     bid_data = df[df["입찰명"] == selected_bid].iloc[0]
 
     st.write(f"### 📌 입찰명: {bid_data['입찰명']}")
@@ -52,6 +62,7 @@ if not df.empty:
     if isinstance(bid_data.get("정량평가", ""), str) and bid_data["정량평가"].strip():
         st.write(f"📋 **정량평가 항목**: {bid_data['정량평가']}")
 
+    # ✅ 개찰 정보 조회 버튼 → 자동 이동 기능 추가!
     if bid_data["개찰여부"] == "⭕ 개찰 완료":
         st.write("🏆 개찰이 완료된 입찰입니다.")
         if st.button("📊 개찰 정보 조회"):
